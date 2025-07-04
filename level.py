@@ -24,35 +24,45 @@ class Level:
         self.level[self.level_center[0]][self.level_center[1]].tree_arr.sort(key=lambda a: a.y)
 
     def create_screen(self, pos: tuple):
-        self.level[pos[1]][pos[0]] = GameScreen(*pos)
-        self.set_of_screen_pos.add(pos)
+        # Проверяем границы массива перед созданием экрана
+        if 0 <= pos[1] < len(self.level) and 0 <= pos[0] < len(self.level[0]):
+            self.level[pos[1]][pos[0]] = GameScreen(*pos)
+            self.set_of_screen_pos.add(pos)
 
     def paint_shadows(self):
         player_pos = self.manager.player_rect.x // WIDTH, self.manager.player_rect.y // HEIGHT
         for i in range(-1, 2):
             for j in range(-1, 2):
                 pos = (player_pos[0] + i, player_pos[1] + j)
-                if pos not in self.set_of_screen_pos:
-                    self.create_screen(pos)
-                self.level[pos[1]][pos[0]].paint_shadows(self.screen, self.manager.scroll)
+                # Проверяем границы массива
+                if 0 <= pos[1] < len(self.level) and 0 <= pos[0] < len(self.level[0]):
+                    if pos not in self.set_of_screen_pos:
+                        self.create_screen(pos)
+                    self.level[pos[1]][pos[0]].paint_shadows(self.screen, self.manager.scroll)
 
     def paint(self):
         player_pos = self.manager.player_rect.x // WIDTH, self.manager.player_rect.y // HEIGHT
         for i in range(-1, 2):
             for j in range(-1, 2):
                 pos = (player_pos[0] + i, player_pos[1] + j)
-                if pos not in self.set_of_screen_pos:
-                    self.create_screen(pos)
-                self.level[pos[1]][pos[0]].paint(self.screen, self.manager.scroll, self.manager, (i, j) == (0, 0))
+                # Проверяем границы массива
+                if 0 <= pos[1] < len(self.level) and 0 <= pos[0] < len(self.level[0]):
+                    if pos not in self.set_of_screen_pos:
+                        self.create_screen(pos)
+                    self.level[pos[1]][pos[0]].paint(self.screen, self.manager.scroll, self.manager, (i, j) == (0, 0))
 
     @property
     def physics_arr(self):
         arr = []
         for i in range(-1, 2):
             for j in range(-1, 2):
-                game_screen = self.level[self.manager.player_rect.y // HEIGHT + i][
-                    self.manager.player_rect.x // WIDTH + j]
-                if game_screen is not None:
-                    for tree in game_screen.tree_arr:
-                        arr.append(tree)
+                y_index = self.manager.player_rect.y // HEIGHT + i
+                x_index = self.manager.player_rect.x // WIDTH + j
+                
+                # Проверяем границы массива
+                if 0 <= y_index < len(self.level) and 0 <= x_index < len(self.level[0]):
+                    game_screen = self.level[y_index][x_index]
+                    if game_screen is not None:
+                        for tree in game_screen.tree_arr:
+                            arr.append(tree)
         return arr
