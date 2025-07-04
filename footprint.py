@@ -2,9 +2,18 @@ from settings import *
 
 
 class Footprint:
-    im_arr = [pygame.image.load(f'data/sled{i + 1}.png') for i in range(4)]
+    im_arr = None
+
+    @classmethod
+    def load_images(cls):
+        """Загружает изображения следов. Должен быть вызван после инициализации pygame.display."""
+        if cls.im_arr is None:
+            cls.im_arr = [pygame.image.load(f'data/sled{i + 1}.png') for i in range(4)]
 
     def __init__(self, x, y):
+        # Убеждаемся что изображения загружены
+        Footprint.load_images()
+        
         self.im = Footprint.im_arr[random.randrange(len(Footprint.im_arr))].convert_alpha()
         self.x, self.y = (x - self.im.get_width() // 2) // 3 * 3, (y - self.im.get_height() // 2) // 3 * 3
         self.condition = 800

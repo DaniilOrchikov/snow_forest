@@ -63,7 +63,15 @@ class GameManager:
 
         self.screen = screen
         self.level = Level(self)
-        self.sounds = {'axe': [pygame.mixer.Sound(f'music/axe/{i + 1}.ogg') for i in range(5)]}
+        
+        # Инициализируем звуки безопасно
+        self.sounds = {}
+        try:
+            if pygame.mixer.get_init():
+                self.sounds = {'axe': [pygame.mixer.Sound(f'music/axe/{i + 1}.ogg') for i in range(5)]}
+        except (pygame.error, FileNotFoundError):
+            # Если звуки не могут быть загружены, продолжаем без них
+            pass
         self.icons = {'log': pygame.image.load('data/icons/log.png').convert_alpha(),
                       'time': pygame.image.load('data/icons/time.png').convert_alpha(), }
         self.fps_font = pygame.font.Font(FONT, 26)
@@ -210,7 +218,9 @@ class GameManager:
             if keys[pygame.K_e] and not self.fps_counter_2:
                 self.fps_counter_2 = 50
                 tree.hp -= 1
-                self.sounds['axe'][random.randrange(len(self.sounds['axe']))].play()
+                # Безопасно воспроизводим звук
+                if 'axe' in self.sounds and self.sounds['axe']:
+                    self.sounds['axe'][random.randrange(len(self.sounds['axe']))].play()
 
     def paint_bar(self, MAX_VALUE, value, width, height, pos, color):
         pygame.draw.line(self.screen, (0, 0, 0),

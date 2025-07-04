@@ -2,11 +2,22 @@ from settings import *
 
 
 class Tree:
-    im_arr = [pygame.image.load(f'data/tree_{i}.png') for i in range(6)]
-    shadow_im_arr = [pygame.image.load(f'data/tree_shadow_{i}.png') for i in range(6)]
-    stump_im_arr = [pygame.image.load(f'data/stump_{i}.png') for i in range(6)]
+    im_arr = None
+    shadow_im_arr = None 
+    stump_im_arr = None
+
+    @classmethod
+    def load_images(cls):
+        """Загружает изображения деревьев. Должен быть вызван после инициализации pygame.display."""
+        if cls.im_arr is None:
+            cls.im_arr = [pygame.image.load(f'data/tree_{i}.png') for i in range(6)]
+            cls.shadow_im_arr = [pygame.image.load(f'data/tree_shadow_{i}.png') for i in range(6)]
+            cls.stump_im_arr = [pygame.image.load(f'data/stump_{i}.png') for i in range(6)]
 
     def __init__(self, x, y):
+        # Убеждаемся что изображения загружены
+        Tree.load_images()
+        
         rand_ind = random.randrange(0, 6)
         self.im = Tree.im_arr[rand_ind].convert_alpha()
         self.stump_im = Tree.stump_im_arr[rand_ind].convert_alpha()
