@@ -1,5 +1,6 @@
 from gui import Button, Slider
 from settings import *
+from constants import *
 
 
 def menu_movement(arr, up=True):
@@ -58,8 +59,11 @@ class MenuManager:
                                 self.condition = 'settings'
                             case 'Статистика':
                                 self.condition = 'statistics'
-                                with open('statistics.txt', 'r') as f:
-                                    self.statistics_text = f.read().split('\n')
+                                try:
+                                    with open(STATISTICS_FILE, 'r') as f:
+                                        self.statistics_text = f.read().split('\n')
+                                except FileNotFoundError:
+                                    self.statistics_text = ['00:00:00', '0', '0', '0', '0']
                             case 'Выйти':
                                 return 'exit'
                     elif self.condition == 'statistics':

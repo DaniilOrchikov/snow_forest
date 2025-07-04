@@ -1,6 +1,7 @@
 import pygame
 
 from settings import *
+from constants import *
 
 
 class Button:

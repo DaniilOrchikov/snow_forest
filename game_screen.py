@@ -1,6 +1,7 @@
 from numba import njit
 
 from settings import *
+from constants import *
 from tree import Tree
 
 
@@ -16,12 +17,13 @@ def approximate_comparison(x, y, shift):
 class GameScreen:
     def __init__(self, x, y):
         self.x, self.y = x, y
-        self.np_arr_scale = 24
+        self.np_arr_scale = SPATIAL_GRID_SIZE
         self.tree_arr = []
+        self._trees_sorted = True  # Флаг для отслеживания сортировки
         tree_arr = [
             Tree(random.randint(self.x * WIDTH, WIDTH + self.x * WIDTH),
                  random.randint(self.y * HEIGHT, HEIGHT + self.y * HEIGHT))
-            for _ in range(200)]
+            for _ in range(TREES_PER_SCREEN)]
         tree_arr_helper = set()
         for i in tree_arr:
             if (i.x, i.y) not in tree_arr_helper:
@@ -32,15 +34,21 @@ class GameScreen:
 
         i = 0
         while i < len(self.tree_arr) - 1:
-            if approximate_comparison(self.tree_arr[i].x, self.tree_arr[i + 1].x, 48) and \
-                    approximate_comparison(self.tree_arr[i].y, self.tree_arr[i + 1].y, 48):
+            if approximate_comparison(self.tree_arr[i].x, self.tree_arr[i + 1].x, TREE_SPACING_THRESHOLD) and \
+                    approximate_comparison(self.tree_arr[i].y, self.tree_arr[i + 1].y, TREE_SPACING_THRESHOLD):
                 self.tree_arr.pop(i)
                 i -= 1
             i += 1
 
         self.tree_arr.sort(key=lambda a: a.y)
+        self._trees_sorted = True
 
     def paint(self, screen, scroll, manager, center=False):
+        # Оптимизация: сортируем только при необходимости
+        if not self._trees_sorted:
+            self.tree_arr.sort(key=lambda a: a.y)
+            self._trees_sorted = True
+        
         f = True
         for el in self.tree_arr:
             if center:

@@ -1,4 +1,5 @@
 from settings import *
+from constants import *
 
 
 class Tree:
@@ -12,12 +13,20 @@ class Tree:
         self.stump_im = Tree.stump_im_arr[rand_ind].convert_alpha()
         self.shadow_im = Tree.shadow_im_arr[rand_ind].convert_alpha()
         self.x, self.y = x, y
-        self.hp = random.randint(3, 5)
+        self.hp = random.randint(TREE_HP_MIN, TREE_HP_MAX)
         self.budget = self.hp + rand_ind % 3 + 1
-        self.rect = pygame.Rect(self.x + self.im.get_width() // 2 - 2 * 3,
-                                self.y + self.im.get_height() - 2 * 3, 4 * 3, 2 * 3)
-        self.rect_for_interaction = pygame.Rect(self.x + self.im.get_width() // 2 - 5 * 3,
-                                                self.y + self.im.get_height() - 5 * 3, 10 * 3, 8 * 3)
+        self.rect = pygame.Rect(
+            self.x + self.im.get_width() // 2 - TREE_COLLISION_WIDTH // 2,
+            self.y + self.im.get_height() - TREE_COLLISION_HEIGHT, 
+            TREE_COLLISION_WIDTH, 
+            TREE_COLLISION_HEIGHT
+        )
+        self.rect_for_interaction = pygame.Rect(
+            self.x + self.im.get_width() // 2 - TREE_INTERACTION_WIDTH // 2,
+            self.y + self.im.get_height() - TREE_INTERACTION_HEIGHT, 
+            TREE_INTERACTION_WIDTH, 
+            TREE_INTERACTION_HEIGHT
+        )
 
     def paint_shadow(self, screen, scroll):
         if self.hp > 0:
@@ -29,10 +38,11 @@ class Tree:
         if self.hp > 0:
             screen.blit(self.im, (self.x - scroll[0], self.y - scroll[1]))
         else:
-            if self.budget:
+            # Проверяем, что еще не обработали это дерево
+            if self.budget > 0:
                 manager.statistics[3] += 1
-            manager.budget += self.budget
-            self.budget = 0
+                manager.budget += self.budget
+                self.budget = 0
             screen.blit(self.stump_im, (self.rect_for_interaction.center[0] - scroll[0] - 3,
                                         self.rect_for_interaction.y - scroll[1] + 3))
         # pygame.draw.rect(screen, 'red',

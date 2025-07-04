@@ -14,7 +14,8 @@ SPEED = 1
 SHIFT_SPEED = 3
 
 
-def print(*args, **kwargs):
+def debug_print(*args, **kwargs):
+    """Debug print function with file and line information"""
     args = list(args)
     args.append('------------- ')
     args.append(f'File "{traceback.StackSummary.extract(traceback.walk_stack(None))[1][0]}", line '

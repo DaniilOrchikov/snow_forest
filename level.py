@@ -1,5 +1,6 @@
 from game_screen import GameScreen
 from settings import *
+from constants import *
 
 
 class Level:
@@ -17,7 +18,7 @@ class Level:
         while i < len(self.level[self.level_center[0]][self.level_center[1]].tree_arr):
             tree = self.level[self.level_center[0]][self.level_center[1]].tree_arr[i]
             if math.sqrt(((tree.x + tree.im.get_width() // 2) - (self.level_center[0] * WIDTH + WIDTH // 2)) ** 2 +
-                ((tree.y + tree.im.get_height() // 2) - (self.level_center[1] * HEIGHT + HEIGHT // 2)) ** 2) < 200:
+                ((tree.y + tree.im.get_height() // 2) - (self.level_center[1] * HEIGHT + HEIGHT // 2)) ** 2) < TREE_MIN_DISTANCE_FROM_CENTER:
                 self.level[self.level_center[0]][self.level_center[1]].tree_arr.pop(i)
                 i -= 1
             i += 1

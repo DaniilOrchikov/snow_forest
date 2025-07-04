@@ -3,6 +3,7 @@ from numba import njit
 from indicator import Indicator
 from level import Level
 from settings import *
+from constants import *
 from fire import Fire
 from footprint import Footprint
 from weather import Weather
@@ -82,9 +83,14 @@ class GameManager:
         self.player_rect.x = self.level.level_center[0] * WIDTH + WIDTH // 2 - 30
         self.player_rect.y = self.level.level_center[1] * HEIGHT + HEIGHT // 2 - 30
         self.scroll = [self.player_rect.x - WIDTH // 2, self.player_rect.y - HEIGHT // 2]
-        self.player_collision_rect = pygame.Rect(self.player_rect.x + 1 * 3, self.player_rect.y + 6 * 3, 4 * 3, 3 * 3)
+        self.player_collision_rect = pygame.Rect(
+            self.player_rect.x + PLAYER_SPRITE_OFFSET_X, 
+            self.player_rect.y + PLAYER_SPRITE_OFFSET_Y, 
+            PLAYER_COLLISION_WIDTH, 
+            PLAYER_COLLISION_HEIGHT
+        )
         self.budget = 0
-        self.PLAYER_STAMINA = 120
+        self.PLAYER_STAMINA = PLAYER_STAMINA_MAX
         self.player_stamina = self.PLAYER_STAMINA
         self.shift = False
         self.fire = Fire(self)
@@ -147,8 +153,8 @@ class GameManager:
     def paint_player(self):
         if self.player_is_go:
             self.player_im_counter += 1
-        self.player_im_counter %= len(self.player_im_arr) * 10
-        im = self.player_im_arr[self.player_im_counter // 10]
+        self.player_im_counter %= len(self.player_im_arr) * PLAYER_ANIMATION_FRAMES
+        im = self.player_im_arr[self.player_im_counter // PLAYER_ANIMATION_FRAMES]
         if self.player_is_right:
             im = pygame.transform.flip(im, True, False)
         self.screen.blit(im, (self.player_rect.x - self.scroll[0], self.player_rect.y - self.scroll[1]))
@@ -160,14 +166,14 @@ class GameManager:
             self.player_stamina = self.PLAYER_STAMINA
             self.shift = True
         if self.player_stamina > 0 and self.shift:
-            self.player_stamina -= 1.2
+            self.player_stamina -= STAMINA_DRAIN_RATE
             speed = SHIFT_SPEED
             self.shift = True
         else:
             self.shift = False
             speed = SPEED
         if self.player_stamina < self.PLAYER_STAMINA and not self.shift:
-            self.player_stamina += 0.4
+            self.player_stamina += STAMINA_REGEN_RATE
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             move[1] += -speed
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
@@ -192,8 +198,8 @@ class GameManager:
         #      if i is not None])
         physics(
             self.player_collision_rect, move, self.level.physics_arr)
-        self.player_rect.x = self.player_collision_rect.x - 1 * 3
-        self.player_rect.y = self.player_collision_rect.y - 7 * 3
+        self.player_rect.x = self.player_collision_rect.x - PLAYER_SPRITE_OFFSET_X
+        self.player_rect.y = self.player_collision_rect.y - PLAYER_RECT_OFFSET_Y
 
     def interaction_controller(self):
         if self.fps_counter_2 > 0:
@@ -208,7 +214,7 @@ class GameManager:
         if tree is not None:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_e] and not self.fps_counter_2:
-                self.fps_counter_2 = 50
+                self.fps_counter_2 = INTERACTION_COOLDOWN
                 tree.hp -= 1
                 self.sounds['axe'][random.randrange(len(self.sounds['axe']))].play()
 
@@ -221,21 +227,29 @@ class GameManager:
                          (WIDTH // 2 - width // 2 + width / MAX_VALUE * value, pos[1]), height)
 
     def paint_interface(self, clock, start_time):
-        self.paint_string(str(int(clock.get_fps())), WIDTH - 35, 10, (0, 103, 155), self.fps_font)
-        self.paint_string(f'{int(time.time() - start_time) // 3600 % 60:02}:'
-                          f'{int(time.time() - start_time) // 60 % 60:02}:'
-                          f'{int(time.time() - start_time) % 60:02}',
-                          10, 10, (0, 203, 255), self.interface_font, False, self.icons['time'])
-        self.statistics[0] = time.time() - start_time
-        self.paint_string(str(self.budget), 10, 50, (0, 203, 255), self.interface_font, False, self.icons['log'])
-        self.paint_bar(self.PLAYER_STAMINA, self.player_stamina, 200, 20, (WIDTH // 2, 50), 'blue')
-        self.paint_string(f'{round(self.fire.hp)}/{round(self.fire.HP)}', WIDTH // 2, 16, 'white', self.fps_font)
+        # Оптимизация: вычисляем значения только один раз
+        fps = int(clock.get_fps())
+        elapsed_time = int(time.time() - start_time)
+        hours = elapsed_time // 3600 % 60
+        minutes = elapsed_time // 60 % 60
+        seconds = elapsed_time % 60
+        
+        self.paint_string(str(fps), WIDTH - FPS_DISPLAY_X, 10, COLOR_BLUE_DARK, self.fps_font)
+        self.paint_string(f'{hours:02}:{minutes:02}:{seconds:02}',
+                          10, 10, COLOR_BLUE_LIGHT, self.interface_font, False, self.icons['time'])
+        self.statistics[0] = elapsed_time
+        self.paint_string(str(self.budget), 10, 50, COLOR_BLUE_LIGHT, self.interface_font, False, self.icons['log'])
+        self.paint_bar(self.PLAYER_STAMINA, self.player_stamina, INTERFACE_BAR_WIDTH, INTERFACE_BAR_HEIGHT, (WIDTH // 2, 50), 'blue')
+        
+        fire_hp_rounded = round(self.fire.hp)
+        fire_hp_max_rounded = round(self.fire.HP)
+        self.paint_string(f'{fire_hp_rounded}/{fire_hp_max_rounded}', WIDTH // 2, 16, COLOR_WHITE, self.fps_font)
 
     def paint(self):
         self.statistics[1] = round(self.fire.HP)
         self.fps_counter += 1
-        self.fps_counter %= 60
-        if self.fps_counter % 20 == 0 and self.player_is_go:
+        self.fps_counter %= FPS
+        if self.fps_counter % FOOTPRINT_SPAWN_INTERVAL == 0 and self.player_is_go:
             self.footprint_arr.append(
                 Footprint(self.player_collision_rect.center[0], self.player_collision_rect.center[1]))
         self.movement()

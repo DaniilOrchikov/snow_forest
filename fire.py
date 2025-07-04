@@ -1,5 +1,6 @@
 from animation import Animation
 from settings import *
+from constants import *
 
 
 class Fire:
@@ -7,7 +8,7 @@ class Fire:
         self.x, self.y = manager.player_rect.x + 30, manager.player_rect.y + 30
         self.im = pygame.image.load('data/koster.png').convert_alpha()
         self.fire_im_anim = Animation(
-            [pygame.image.load(f'data/ogon{i + 1}.png').convert_alpha() for i in range(6)])
+            [pygame.image.load(f'data/ogon{i + 1}.png').convert_alpha() for i in range(6)], FIRE_ANIMATION_STEP)
         self.rect = self.im.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
@@ -28,7 +29,7 @@ class Fire:
             self.HP = max(self.HP, self.hp)
 
     def paint_hp(self):
-        self.hp -= 0.02
+        self.hp -= FIRE_DRAIN_RATE
         if self.manager.weather_manager.snow_counter > 0:
-            self.hp -= 0.02
-        self.manager.paint_bar(self.HP, self.hp, 200, 20, (WIDTH // 2, 20), 'red')
+            self.hp -= FIRE_SNOW_PENALTY
+        self.manager.paint_bar(self.HP, self.hp, INTERFACE_BAR_WIDTH, INTERFACE_BAR_HEIGHT, (WIDTH // 2, 20), 'red')
