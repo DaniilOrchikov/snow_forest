@@ -12,6 +12,7 @@ FPS = 60
 SCALE = 10
 SPEED = 1
 SHIFT_SPEED = 3
+MAP_TREE_COUNT = 200
 
 
 def print(*args, **kwargs):

@@ -24,28 +24,40 @@ class Button:
 
 
 class Slider:
-    def __init__(self, x, y, length, step, min_value, max_value, color_1, color_2, text_size):
+    def __init__(self, x, y, length, step, min_value, max_value, color_1, color_2, text_size, title=''):
         self.font = pygame.font.Font(FONT, text_size)
         self.min_value = self.value = min_value
         self.max_value = max_value
         self.step = step
-        self.x, self.y, self.length = x - length // 2, y - length // 2, length
+        self.x, self.y, self.length = x - length // 2, y, length
         self.min_value_text = self.font.render(str(min_value), True, color_1)
         self.max_value_text = self.font.render(str(max_value), True, color_1)
         self.color_1 = color_1
         self.color_2 = color_2
         self.regulator_radius = 10
         self.rect = None
+        self.on = False
+        self.title = title
+
+    def shift(self, direction):
+        self.value += self.step * direction
+        self.value = max(self.min_value, min(self.max_value, self.value))
+
+    @property
+    def current_value(self):
+        return int(round(self.value))
 
     def paint(self, screen):
+        active_color = self.color_1 if self.on else self.color_2
         pygame.draw.line(screen, self.color_2, (self.x, self.y), (self.x + self.length, self.y), 6)
-        pygame.draw.circle(screen, self.color_1, (
+        pygame.draw.circle(screen, active_color, (
             self.x + self.length / (self.max_value - self.min_value) * (self.value - self.min_value), self.y),
                            self.regulator_radius)
         self.rect = pygame.Rect(self.x + self.length / (self.max_value - self.min_value) * (
                     self.value - self.min_value) - self.regulator_radius, self.y - self.regulator_radius,
                                 self.regulator_radius * 2, self.regulator_radius * 2)
+        title = self.font.render(f'{self.title}: {self.current_value}', True, active_color)
+        screen.blit(title, (self.x, self.y - 38))
 
     # def shift(self, mouse_pos):
         # if self.rect.collidepoint(mouse_pos):
-
