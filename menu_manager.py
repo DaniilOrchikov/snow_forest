@@ -41,8 +41,9 @@ class MenuManager:
              Button(WIDTH // 2, HEIGHT // 2 + 90, 'Выйти в меню', (0, 103, 155), (0, 203, 255), 50)],
             0]
         self.statistics_button = Button(WIDTH // 2, HEIGHT - 50, 'Назад', (0, 103, 155), (0, 203, 255), 50, True)
-        self.settings_manager = {
-            'level_length_slider': Slider(WIDTH // 2, 200, 300, 20, 30, 300, (0, 103, 155), (0, 203, 255), 30)}
+        self.settings_buttons = [[
+            Slider(WIDTH // 2, 220, 340, 10, 60, 320, (0, 103, 155), (0, 203, 255), 30, 'Деревьев на сектор')
+        ], 0]
         self.pause_time = 0
 
     def event_controller(self, event, func, display):
@@ -53,7 +54,7 @@ class MenuManager:
                         match self.menu_buttons[0][self.menu_buttons[1]].text:
                             case 'Старт':
                                 self.condition = 'in_game'
-                                return func(display)
+                                return func(display, self.map_settings)
                             case 'Настройки карты':
                                 self.condition = 'settings'
                             case 'Статистика':
@@ -62,7 +63,7 @@ class MenuManager:
                                     self.statistics_text = f.read().split('\n')
                             case 'Выйти':
                                 return 'exit'
-                    elif self.condition == 'statistics':
+                    elif self.condition in ('statistics', 'settings'):
                         self.condition = 'menu'
                     elif self.condition == 'stop':
                         match self.stop_buttons[0][self.stop_buttons[1]].text:
@@ -76,17 +77,27 @@ class MenuManager:
                             case 'Перезапустить':
                                 self.stop_buttons[1] = 0
                                 self.condition = 'in_game'
-                                return 'rest'
+                                return 'rest', self.map_settings
                 case pygame.K_UP:
                     if self.condition == 'menu':
                         self.menu_buttons = menu_movement(self.menu_buttons)
                     elif self.condition == 'stop':
                         self.stop_buttons = menu_movement(self.stop_buttons)
+                    elif self.condition == 'settings':
+                        self.settings_buttons = menu_movement(self.settings_buttons)
                 case pygame.K_DOWN:
                     if self.condition == 'menu':
                         self.menu_buttons = menu_movement(self.menu_buttons, False)
                     elif self.condition == 'stop':
                         self.stop_buttons = menu_movement(self.stop_buttons, False)
+                    elif self.condition == 'settings':
+                        self.settings_buttons = menu_movement(self.settings_buttons, False)
+                case pygame.K_LEFT:
+                    if self.condition == 'settings':
+                        self.settings_buttons[0][self.settings_buttons[1]].shift(-1)
+                case pygame.K_RIGHT:
+                    if self.condition == 'settings':
+                        self.settings_buttons[0][self.settings_buttons[1]].shift(1)
                 case pygame.K_ESCAPE:
                     if self.condition == 'in_game':
                         self.pause_time = time.time()
@@ -94,11 +105,18 @@ class MenuManager:
                     elif self.condition == 'stop':
                         self.condition = 'in_game'
                         return 'p_t', time.time() - self.pause_time
+                    elif self.condition in ('settings', 'statistics'):
+                        self.condition = 'menu'
+
+        if event.type == pygame.MOUSEWHEEL and self.condition == 'settings':
+            self.settings_buttons[0][self.settings_buttons[1]].shift(event.y)
 
         if self.condition == 'menu':
             setting_cursor(self.menu_buttons)
         elif self.condition == 'stop':
             setting_cursor(self.stop_buttons)
+        elif self.condition == 'settings':
+            setting_cursor(self.settings_buttons)
 
     def paint(self):
         match self.condition:
@@ -112,8 +130,15 @@ class MenuManager:
                 for i in self.stop_buttons[0]:
                     i.paint(self.screen)
             case 'settings':
-                for i in self.settings_manager:
-                    self.settings_manager[i].paint(self.screen)
+                self.paint_settings()
+
+    def paint_settings(self):
+        title = self.font_h1.render('Настройки карты', True, (0, 103, 155))
+        hint = self.font_h2.render('←/→ или колесо мыши — изменить, Enter/Esc — назад', True, (0, 203, 255))
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 60))
+        self.screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, 120))
+        for slider in self.settings_buttons[0]:
+            slider.paint(self.screen)
 
     def paint_statistics(self):
         text = self.font_h1.render('Максимальные показатели:', True, (0, 103, 155))
@@ -127,3 +152,7 @@ class MenuManager:
             self.screen.blit(text, (20, (dis + text.get_height()) * i + 70))
             text1 = self.font_h2.render(self.statistics_text[i], True, (0, 203, 255))
             self.screen.blit(text1, (750, (dis + text.get_height()) * i + 70))
+
+    @property
+    def map_settings(self):
+        return {'tree_count': self.settings_buttons[0][0].current_value}

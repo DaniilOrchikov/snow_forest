@@ -14,14 +14,14 @@ def approximate_comparison(x, y, shift):
 
 
 class GameScreen:
-    def __init__(self, x, y):
+    def __init__(self, x, y, tree_count=MAP_TREE_COUNT):
         self.x, self.y = x, y
         self.np_arr_scale = 24
         self.tree_arr = []
         tree_arr = [
             Tree(random.randint(self.x * WIDTH, WIDTH + self.x * WIDTH),
                  random.randint(self.y * HEIGHT, HEIGHT + self.y * HEIGHT))
-            for _ in range(200)]
+            for _ in range(tree_count)]
         tree_arr_helper = set()
         for i in tree_arr:
             if (i.x, i.y) not in tree_arr_helper:

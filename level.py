@@ -3,10 +3,11 @@ from settings import *
 
 
 class Level:
-    def __init__(self, manager):
+    def __init__(self, manager, tree_count=MAP_TREE_COUNT):
         self.screen = manager.screen
         self.manager = manager
         self.level = [[None for _ in range(101)] for _ in range(101)]
+        self.tree_count = tree_count
         self.level_center = len(self.level) // 2, len(self.level[0]) // 2
         self.set_of_screen_pos = set()
         for i in range(-1, 2):
@@ -24,7 +25,7 @@ class Level:
         self.level[self.level_center[0]][self.level_center[1]].tree_arr.sort(key=lambda a: a.y)
 
     def create_screen(self, pos: tuple):
-        self.level[pos[1]][pos[0]] = GameScreen(*pos)
+        self.level[pos[1]][pos[0]] = GameScreen(*pos, tree_count=self.tree_count)
         self.set_of_screen_pos.add(pos)
 
     def paint_shadows(self):

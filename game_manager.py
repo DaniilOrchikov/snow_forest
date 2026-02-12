@@ -43,11 +43,18 @@ def physics(rect, move, physics_map):
 
 
 def interaction(rect, physics_map):
-    physics_map.sort(key=lambda a: (a.rect.x - rect.center[0]) ** 2 + (a.rect.y - rect.center[1]) ** 2)
-    for i in physics_map:
-        if i.rect_for_interaction.colliderect(rect) and i.hp > 0:
-            return i
-    return None
+    nearest = None
+    nearest_dist = None
+    cx, cy = rect.center
+    for tile in physics_map:
+        if tile.hp <= 0:
+            continue
+        if tile.rect_for_interaction.colliderect(rect):
+            dist = (tile.rect.x - cx) ** 2 + (tile.rect.y - cy) ** 2
+            if nearest is None or dist < nearest_dist:
+                nearest = tile
+                nearest_dist = dist
+    return nearest
 
 
 def roll(a, b, dx=1, dy=1):
@@ -58,11 +65,12 @@ def roll(a, b, dx=1, dy=1):
 
 
 class GameManager:
-    def __init__(self, screen):
+    def __init__(self, screen, map_settings=None):
         self.statistics = ['time', 'fire_level', 0, 0]
 
         self.screen = screen
-        self.level = Level(self)
+        map_settings = map_settings or {}
+        self.level = Level(self, map_settings.get('tree_count', MAP_TREE_COUNT))
         self.sounds = {'axe': [pygame.mixer.Sound(f'music/axe/{i + 1}.ogg') for i in range(5)]}
         self.icons = {'log': pygame.image.load('data/icons/log.png').convert_alpha(),
                       'time': pygame.image.load('data/icons/time.png').convert_alpha(), }
