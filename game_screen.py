@@ -39,23 +39,3 @@ class GameScreen:
             i += 1
 
         self.tree_arr.sort(key=lambda a: a.y)
-
-    def paint(self, screen, scroll, manager, center=False):
-        if not center:
-            for el in self.tree_arr:
-                el.paint(screen, scroll, manager)
-            return
-
-        entities = []
-        for el in self.tree_arr:
-            entities.append((el.y + el.im.get_height(), lambda tree=el: tree.paint(screen, scroll, manager)))
-
-        entities.append((manager.player_rect.y + manager.player_rect.height, manager.paint_player))
-
-        entities.sort(key=lambda item: item[0])
-        for _, draw in entities:
-            draw()
-
-    def paint_shadows(self, screen, scroll):
-        for el in self.tree_arr:
-            el.paint_shadow(screen, scroll)
