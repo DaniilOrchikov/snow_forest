@@ -11,6 +11,8 @@ class Tree:
         self.im = Tree.im_arr[rand_ind].convert_alpha()
         self.stump_im = Tree.stump_im_arr[rand_ind].convert_alpha()
         self.shadow_im = Tree.shadow_im_arr[rand_ind].convert_alpha()
+        self.shadow_sprite = pygame.mask.from_surface(self.im).to_surface(setcolor=(0, 0, 0, 255),
+                                                                         unsetcolor=(0, 0, 0, 0)).convert_alpha()
         self.x, self.y = x, y
         self.hp = random.randint(3, 5)
         self.budget = self.hp + rand_ind % 3 + 1

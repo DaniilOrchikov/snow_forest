@@ -14,14 +14,14 @@ def approximate_comparison(x, y, shift):
 
 
 class GameScreen:
-    def __init__(self, x, y):
+    def __init__(self, x, y, tree_count=MAP_TREE_COUNT):
         self.x, self.y = x, y
         self.np_arr_scale = 24
         self.tree_arr = []
         tree_arr = [
             Tree(random.randint(self.x * WIDTH, WIDTH + self.x * WIDTH),
                  random.randint(self.y * HEIGHT, HEIGHT + self.y * HEIGHT))
-            for _ in range(200)]
+            for _ in range(tree_count)]
         tree_arr_helper = set()
         for i in tree_arr:
             if (i.x, i.y) not in tree_arr_helper:
@@ -41,17 +41,20 @@ class GameScreen:
         self.tree_arr.sort(key=lambda a: a.y)
 
     def paint(self, screen, scroll, manager, center=False):
-        f = True
+        if not center:
+            for el in self.tree_arr:
+                el.paint(screen, scroll, manager)
+            return
+
+        entities = []
         for el in self.tree_arr:
-            if center:
-                if el.y + el.im.get_height() > manager.player_rect.y + manager.player_rect.height and f:
-                    manager.paint_player()
-                    f = False
-            else:
-                f = False
-            el.paint(screen, scroll, manager)
-        if f:
-            manager.paint_player()
+            entities.append((el.y + el.im.get_height(), lambda tree=el: tree.paint(screen, scroll, manager)))
+
+        entities.append((manager.player_rect.y + manager.player_rect.height, manager.paint_player))
+
+        entities.sort(key=lambda item: item[0])
+        for _, draw in entities:
+            draw()
 
     def paint_shadows(self, screen, scroll):
         for el in self.tree_arr:
