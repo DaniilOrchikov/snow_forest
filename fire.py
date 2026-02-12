@@ -26,6 +26,7 @@ class Fire:
             self.hp += self.manager.budget
             self.manager.budget = 0
             self.HP = max(self.HP, self.hp)
+            self.manager.player_light_until = time.time() + PLAYER_LIGHT_DURATION
 
     def paint_hp(self):
         self.hp -= 0.02

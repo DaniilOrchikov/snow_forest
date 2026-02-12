@@ -5,8 +5,8 @@ from settings import *
 from game_manager import GameManager
 
 
-def start(display):
-    game_manager = GameManager(display)
+def start(display, map_settings=None):
+    game_manager = GameManager(display, map_settings or {})
     start_time = time.time()
     return game_manager, start_time
 
@@ -47,8 +47,11 @@ def main():
                 return
             args = menu_manager.event_controller(event, start, display)
             if args is not None:
-                if len(args) == 2 and args[0] not in ['p_t'] and isinstance(args, tuple):
-                    game_manager, start_time = args
+                if isinstance(args, tuple) and len(args) == 2 and args[0] != 'p_t':
+                    if args[0] == 'rest':
+                        game_manager, start_time = start(display, args[1])
+                    else:
+                        game_manager, start_time = args
                     break
                 elif args == 'exit':
                     return
@@ -56,18 +59,15 @@ def main():
                     start_time += args[1]
                 elif args == 'ex':
                     save_stats(game_manager)
-                elif args == 'rest':
-                    game_manager, start_time = start(display)
-                    break
 
         display.fill('white')
         if menu_manager.condition == 'in_game':
             game_manager.paint()
             game_manager.paint_interface(clock, start_time)
 
-            if game_manager.fire.hp < 0:  # проигрыш
+            if game_manager.fire.hp < 0:
                 save_stats(game_manager)
-                game_manager, start_time = start(display)
+                game_manager, start_time = start(display, menu_manager.map_settings)
 
         menu_manager.paint()
 
