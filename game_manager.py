@@ -6,6 +6,7 @@ from settings import *
 from fire import Fire
 from footprint import Footprint
 from weather import Weather
+from lighting import LightingSystem
 
 
 @njit(fastmath=True, cache=True)
@@ -78,6 +79,7 @@ class GameManager:
         self.interface_font = pygame.font.Font(FONT, 45)
 
         self.weather_manager = Weather(self, self.screen)
+        self.lighting = LightingSystem()
 
         self.np_arr_scale = 24
         self.player_im_arr = [pygame.image.load(f'data/player{i + 1}.png').convert_alpha() for i in range(3)]
@@ -140,6 +142,7 @@ class GameManager:
         self.footprint_arr = []
         self.fps_counter = 0
         self.fps_counter_2 = 0
+        self.player_light_until = 0
 
     def paint_string(self, text, x, y, color, font, centering=True, dop_im=None):
         text = font.render(text, True, color)
@@ -266,7 +269,6 @@ class GameManager:
         #                            (self.player_rect.x - int(WIDTH * 0.6)) // self.np_arr_scale]:
         #     if i is not None:
         #         i.paint_shadow(self.screen, self.scroll)
-        self.level.paint_shadows()
         for i, el in sorted(enumerate(self.footprint_arr), reverse=True):
             el.paint(self.screen, self.scroll, self.weather_manager.snow_counter > 0)
             if el.condition <= 0:
@@ -279,9 +281,11 @@ class GameManager:
         #             self.paint_player()
         #             f = True
         #         el.paint(self.screen, self.scroll, self)
+        self.fire.paint(self.screen, self.scroll)
         self.level.paint()
 
-        self.fire.paint(self.screen, self.scroll)
+        self.lighting.paint(self.screen, self.scroll, self.level.physics_arr, self.fire, self.player_rect,
+                            self.player_light_until)
         pygame.gfxdraw.polygon(self.screen, ((-1, -1), (WIDTH + 1, 0), (WIDTH + 1, HEIGHT + 1), (0, HEIGHT + 1)),
                                (0, 0, 0))
         self.weather_manager.paint()
